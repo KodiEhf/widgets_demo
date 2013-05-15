@@ -41,7 +41,7 @@
    var set          = me.getAttribute('data-set');
    var width        = me.getAttribute('data-width');
    var key          = me.getAttribute('data-key');
-   var api_domain   = 'http://localhost:8080';
+   var api_domain   = 'http://radiant-brook-7344.herokuapp.com';
    var cross_domain = api_domain.indexOf(location.host) != -1;
    var table        = undefined;
    var columns      = undefined;
