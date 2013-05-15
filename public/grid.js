@@ -52,9 +52,10 @@
    var set          = me.getAttribute('data-set');
    var width        = me.getAttribute('data-width');
    var key          = me.getAttribute('data-key');
+   var poll         = me.getAttribute('data-poll');
    var api_domain   = 'http://radiant-brook-7344.herokuapp.com';
    var cross_domain = api_domain.indexOf(location.host) != -1;
-   var table        = undefined;
+   var table_ready  = false;
    var columns      = undefined;
    
    // Lets start by rending 'Loading'
@@ -96,32 +97,31 @@
      req.done(
        function(d) {
 	 // We don't want to bootstrap the el more then once
-	 if (table == undefined) {
-	   var table = $('<table class=\"LMD_grid_table"><thead class="LMD_grid_thead"><tr></tr></thead><tbody class="LMD_grid_tbody"></tbody></table>');
+	 if (table_ready === false) {
 	   var head = "";
 	   for (i in d['columns']) {
 	     head += '<th>' + d['columns'][i]['name']+'</th>';
 	   }
-	   $('thead tr', table).append(head);
+	   var table_data = '<table class=\"LMD_grid_table"><thead class="LMD_grid_thead"><tr>'+head+'</tr></thead><tbody class="LMD_grid_tbody"></tbody></table>';
+	   $(loading_text).replaceWith(table_data);
+	   table_ready = true;
 	   columns = d['columns'];
-	   $(loading_text).replaceWith(table);
 	 }
 
 	 // Load the data
 	 for (i in d['data']) {
 	   var row = d['data'][i];
 
-	   // Find if there is a row for 'my data'. This is currently expensive, we
+	   // Find if there is a row for 'this data'. This is currently expensive, we
 	   // should look into optimizing here
-	   var row_el = $('tbody tr[data-id="'+row['symbol']+'"]', table);
-	   if (!row_el[0]) {
+	   var row_el = $('table tbody tr[data-id="'+row['symbol']+'"]', wrapper);
+	   if (row_el.length === 0) {
 	     var row_el = $('<tr data-id="'+row['symbol']+'"></tr>');
-	     $('tbody', table).append(row_el);
+	     $('table tbody', wrapper).append(row_el);
 	   }
-	   var row_el = $('tbody tr[data-id="'+row['symbol']+'"]', table);
-	   var row_data = ""
 
 	   // I know this stuff isn't pretty
+	   var row_data = ""
 	   for (column in columns) {
 	     var cell_type = columns[column]['type'];
 	     var content = row[column];
@@ -132,7 +132,11 @@
 	     }
 	     row_data += '<td class="LMD_grid_cell_'+cell_type+'">'+content+'</td>'
 	   }
-	   row_el.html(row_data);
+	   $('table tbody tr[data-id="'+row['symbol']+'"]', wrapper).html(row_data);
+	 }
+	 // Primative polling!
+	 if (poll) {
+	   setTimeout(function() { work() }, poll);
 	 }
        });
    }
