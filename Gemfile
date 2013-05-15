@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+gem 'rack'
+gem 'rerun'
+gem 'sinatra', git: 'https://github.com/sinatra/sinatra.git'
+gem 'sinatra-contrib', git: 'https://github.com/sinatra/sinatra-contrib.git'
+gem 'sinatra-jsonp'
