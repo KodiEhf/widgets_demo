@@ -17,15 +17,15 @@
    var start = function(callback) {
      var old_jq = undefined;
      if (__g__.LMD.$) {
-       next();
+       callback();
      } else if (__g__.jQuery && __g__.jQuery.fn.jquery == '2.0.0') {
        __g__.LMD.$ = window.jQuery;
-       next();
+       callback();
      } else {
-       if (window.jQuery) {
+       if (__g__.jQuery) {
 	 // There is another jQuery here, not of the version we want. Let's
 	 // keep it around
-	 old_jq = window.jQuery.noConflict();
+	 old_jq = __g__.jQuery.noConflict();
        }
        // It's not here. We got to download it..
        load_script('//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js',
@@ -100,7 +100,7 @@
 	 if (table_ready === false) {
 	   var head = "";
 	   for (i in d['columns']) {
-	     head += '<th>' + d['columns'][i]['name']+'</th>';
+	       head += '<th>' + d['columns'][i]['name']+'</th>';
 	   }
 	   var table_data = '<table class=\"LMD_grid_table"><thead class="LMD_grid_thead"><tr>'+head+'</tr></thead><tbody class="LMD_grid_tbody"></tbody></table>';
 	   $(loading_text).replaceWith(table_data);
