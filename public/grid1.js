@@ -1,10 +1,11 @@
 (function(_g_) {
    var type   = 'grid';
+   var column_info = undefined;
 
    // Helper functions
    if (!_g_['LMD']) {
      _g_.LMD = {
-       js_root: 'http://radiant-brook-7344.herokuapp.com',   // THIS NEEDS TO BE DIFFERENT / figure out from 'me'?
+       js_root: 'http://radiant-brook-7344.herokuapp.com',
        handler: false,
        inject_script: function(error_callback, callback, script_path) {
 	 var head = document.getElementsByTagName('head')[0];
@@ -58,55 +59,55 @@
      }
    }
 
+   var row = function(bus, symbol, el) {
+     bus.on('data:'+symbol,
+     function(_, data) {
+       var tr = '<tr data-lmd-row-id="'+data['symbol']+'">'
+       for (d in data) {
+	 var content = ""
+	 var cell_type = column_info[d].type;
+	 if (cell_type === 'string')
+	   content = data[d]
+	 else if (cell_type === 'ccy')
+	   content = data[d].toFixed(5);
+	 else if (cell_type === 'float')
+	   content = data[d].toFixed(5);
+	 else if (cell_type === 'int')
+	   content = data[d]
+	 tr += '<td class="lmd_grid_cell_' + cell_type + '">'+content+'</td>'
+       }
+       tr += '</tr>'
+       var next_el = _g_.LMD.$(tr);
+       el.replaceWith(next_el);
+       el = next_el;
+     });
+   }
+
    var table = function(bus, attributes, dom) {
-     var column_info = null;
      var set = attributes['set'].split(',');
+     _g_.LMD.$(dom['inner_wrapper']).html('<table class="lmd_grid_table"><thead></thead><tbody></tbody></table>');
+     var rows = [];
      for (s in set) {
-       // Subscribe to the dataset
-       bus.on('data:'+set[s],
-	 function(_, data) {
-	   var t = _g_.LMD.$('table', dom['inner_wrapper'])
-	   var tr = '<tr data-lmd-row-id="'+data['symbol']+'">'
-	   for (d in data) {
-	     var content = ""
-	     var cell_type = column_info[d].type;
-	     if (cell_type === 'string')
-	       content = data[d]
-	     else if (cell_type === 'ccy')
-	       content = data[d].toFixed(5);
-	     else if (cell_type === 'float')
-	       content = data[d].toFixed(5);
-	     else if (cell_type === 'int')
-	       content = data[d]
-	     tr += '<td class="lmd_grid_cell_' + cell_type + '">'+content+'</td>'
-	   }
-	   tr += '</tr>'
-	   var current_tr = _g_.LMD.$('table tbody tr[data-lmd-row-id="'+data['symbol']+'"]', dom['inner_wrapper']);
-	   // Insert or replace
-	   if (current_tr.length === 0) {
-	     _g_.LMD.$('table tbody').append(tr);
-	   } else {
-	     current_tr.replaceWith(tr);
-	   }
-	 });
+       var el = _g_.LMD.$('<tr></tr>');
+       _g_.LMD.$('table tbody', dom['inner_wrapper']).append(el);
+       rows.push(new row(bus, set[s], el));
      }
-     get_data(bus, 'data', attributes);
      bus.on('column:row', function(event, columns) {
 	      // We got the table rows, render the table
-	      var head = "";
+	      var head = "<tr>";
 	      column_info = columns;
 	      for (i in columns)
 		head += '<th>' + columns[i]['name'] + '</th>';
-	      var table_body = '<table class="lmd_grid_table"><thead><tr>'+head+'</tr></thead><tbody></tbody></table>'
-	      _g_.LMD.$(dom['inner_wrapper']).html(table_body);
-	      // Done drawing the table. Unbind.
+	      head += "</tr>"
+	      _g_.LMD.$("table thead", dom['inner_wrapper']).append(head);
 	      bus.unbind(event);
 	    });
+     get_data(bus, 'data', attributes);
    }
 
    var setup = function() {
      var attributes = _g_.LMD.get_attributes(me);
-     var bootstrap_dom = _g_.LMD.bootstrap_dom(attributes);
+     var bootstrap_dom = _g_.LMD.bootstrap_dom(attributes, type);
      me.parentNode.replaceChild(bootstrap_dom['wrapper'], me);
      me = null;
      var jquery_promise = _g_.LMD.insure_jquery();
