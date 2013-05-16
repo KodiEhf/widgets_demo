@@ -118,7 +118,7 @@
    }
 
    if (!_g_.LMD.handler) {
-     var path = _g_.LMD.js_root+'handler.js';
+     var path = _g_.LMD.js_root+'/handler.js';
      _g_.LMD.inject_script(function() { alert("Could not load script"); },
        function() {
 	 setup();
